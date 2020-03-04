@@ -70,6 +70,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>de.etgramlich</groupId>
+            <artifactId>antlr-test</artifactId>
+            <version>0.9-snapshot</version>
+        </dependency>
+        <dependency>
             <groupId>com.vaadin</groupId>
             <!-- Replace artifactId with vaadin-core to use only free components -->
             <artifactId>vaadin</artifactId>

@@ -1,23 +1,26 @@
 package de.sharknoon.internal_dsl_generator.views.generator;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.details.Details;
-import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import de.sharknoon.internal_dsl_generator.backend.GrammarFile;
+import com.vaadin.flow.server.StreamResource;
+import de.sharknoon.internal_dsl_generator.backend.GeneratorService;
 import de.sharknoon.internal_dsl_generator.views.main.MainView;
 
 @Route(value = "generator", layout = MainView.class)
@@ -26,36 +29,17 @@ import de.sharknoon.internal_dsl_generator.views.main.MainView;
 @CssImport("styles/views/generator/generator-view.css")
 public class GeneratorView extends VerticalLayout {
 
-    //State state of this view
-    private GeneratorState state = GeneratorState.UPLOAD;
-    //The components of this view, to toggle visibility
-    private Component upload;
-    private Component processing;
-    private Details usage;
-
-
     public GeneratorView() {
         setId("generator-view");
         addComponents();
-        changeState(GeneratorState.UPLOAD);
     }
 
     private void addComponents() {
         //Title
-        Component title = getTitleComponent();
-        add(title);
+        add(getTitleComponent());
 
-        //Adding the Upload Component to the left side
-        upload = getUploadComponent();
-        add(upload);
-
-        //Also the Calculating Components
-        processing = getCalculatingComponent();
-        add(processing);
-
-        //Adding the help Component to the right side
-        usage = getUsageComponent();
-        add(usage);
+        //Adding the Upload Components
+        add(getUploadComponents());
     }
 
     private Component getTitleComponent() {
@@ -67,16 +51,23 @@ public class GeneratorView extends VerticalLayout {
         return title;
     }
 
-    private Upload getUploadComponent() {
-        //Buffer for the File
-        MemoryBuffer buffer = new MemoryBuffer();
+    //Buffer for the File
+    MemoryBuffer memoryBuffer = new MemoryBuffer();
 
-        Upload upload = new Upload(buffer);
-        //Only accept EBNF and BNF Grammar Files
+    private Component[] getUploadComponents() {
+        // Start Button
+        Button startButton = new Button("Generate");
+
+        //Textfield for the package name
+        TextField packageNameField = new TextField();
+        packageNameField.setLabel("Package Name");
+        packageNameField.setPlaceholder("de.etgramlich");
+        packageNameField.setRequired(true);
+
+        //The upload Element for uploading the grammar file
+        Upload upload = new Upload(memoryBuffer);
         upload.setAcceptedFileTypes(".bnf", ".ebnf");
-        //Only allow one File to be uploaded
         upload.setMaxFiles(1);
-        //Only allow 5 MB file sizes
         upload.setMaxFileSize(5 * 1024 * 1024);
 
         //Customizing the Upload Button, Optional
@@ -89,14 +80,9 @@ public class GeneratorView extends VerticalLayout {
 
         //Adding Succeed Listener
         upload.addSucceededListener(event -> {
-            //Making a bean of the uploaded grammar file
-            GrammarFile uploadedFile = new GrammarFile(
-                    event.getFileName(),
-                    event.getContentLength(),
-                    buffer
-            );
-            //Changing the state
-            changeState(GeneratorState.PROCESSING);
+            if (!packageNameField.getValue().isEmpty()) {
+                startButton.setEnabled(true);
+            }
         });
 
         //Adding File Rejection Listener
@@ -107,70 +93,56 @@ public class GeneratorView extends VerticalLayout {
             errorNotification.open();
         });
 
-        return upload;
+
+        startButton.addClickListener(event -> {
+            String packageNameFieldValue = packageNameField.getValue();
+            if (!validateInput(packageNameFieldValue, memoryBuffer)) {
+                return;
+            }
+            try {
+                StreamResource resource = GeneratorService.generate(memoryBuffer, packageNameFieldValue);
+
+                Label label = new Label("Congratulations, your generated File is ready to be downloaded :)");
+
+                Button downloadButton = new Button("Download");
+                Anchor downloadAnchor = new Anchor();
+                downloadAnchor.setHref(resource);
+                downloadAnchor.getElement().setAttribute("download", true);
+                downloadAnchor.add(downloadButton);
+
+                Dialog dialog = new Dialog();
+                dialog.add(new VerticalLayout(label, downloadAnchor));
+                dialog.setWidth("400px");
+                dialog.setHeight("150px");
+                dialog.open();
+                dialog.addDialogCloseActionListener(event1 -> {
+                    
+                });
+
+                downloadButton.addClickListener(e -> dialog.close());
+            } catch (Exception e) {
+                e.printStackTrace();
+                Notification notification = new Notification("Error during Generation " + e);
+                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                notification.open();
+            }
+        });
+        return new Component[]{packageNameField, upload, startButton};
     }
 
-    private Details getUsageComponent() {
-        //A little help text
-        Details component = new Details();
-        component.setSummaryText("Usage");
-        component.addThemeVariants(DetailsVariant.REVERSE, DetailsVariant.FILLED);
-        return component;
-    }
-
-    private void updateUsageComponent(GeneratorState newState){
-        usage.setContent(new Text(getUsageString(newState)));
-    }
-
-    private String getUsageString(GeneratorState state) {
-        //Returns the usage string depending on the state of the Generator
-        switch (state) {
-            case UPLOAD:
-                return "Upload a .ebnf or .bnf grammar File. This file will be checked " +
-                        "for syntax and if everything looks great, the generator starts working.";
-            case PROCESSING:
-                return "Please wait while your new library is being generated";
-            case FINISHED:
-                return "Congrats! Your new library is generated! Download it now.";
-            default:
-                return "Can't happen";
+    private boolean validateInput(String packageName, MemoryBuffer buffer) {
+        if (packageName.isEmpty()) {
+            Notification n = new Notification("Please enter a package name");
+            n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            n.open();
+            return false;
+        } else if (memoryBuffer.getFileData() == null) {
+            Notification n = new Notification("Please upload a grammar file");
+            n.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            n.open();
+            return false;
         }
-    }
-
-    private Component getCalculatingComponent() {
-        //Making a Wrapping Layout
-        VerticalLayout layout = new VerticalLayout();
-
-        //A Progress Bar to indicate generating
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setIndeterminate(true);
-        layout.add(progressBar);
-
-        //A Label indicating the Generation
-        Span generatingLabel = new Span("Generating Java Files...");
-        layout.add(generatingLabel);
-
-        return layout;
-    }
-
-    private void changeState(GeneratorState newState) {
-        switch (newState) {
-            case UPLOAD:
-                upload.setVisible(true);
-                processing.setVisible(false);
-                updateUsageComponent(GeneratorState.UPLOAD);
-                break;
-            case PROCESSING:
-                upload.setVisible(false);
-                processing.setVisible(true);
-                updateUsageComponent(GeneratorState.PROCESSING);
-                break;
-            case FINISHED:
-                upload.setVisible(false);
-                processing.setVisible(false);
-                updateUsageComponent(GeneratorState.FINISHED);
-                break;
-        }
+        return true;
     }
 
 }

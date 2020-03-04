@@ -1,5 +1,7 @@
 #generator-view {
     display: block;
+    padding-left: 10%;
+    padding-right: 10%;
 }
 :host {
     display: block;
