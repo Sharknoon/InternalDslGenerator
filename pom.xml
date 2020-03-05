@@ -47,6 +47,11 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>github</id>
+            <name>GitHub Sharknoon Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/Sharknoon/AntlrTest</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
