@@ -1,7 +1,7 @@
 # Run mvnw package first
 FROM openjdk:11
 # Adding a User with non root privileges, optional
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN adduser spring
 USER spring:spring
 
 ARG JAR_FILE=target/*.jar
