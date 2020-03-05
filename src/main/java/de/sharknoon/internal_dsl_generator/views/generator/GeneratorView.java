@@ -22,6 +22,7 @@ import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.StreamResource;
 import de.sharknoon.internal_dsl_generator.backend.GeneratorService;
 import de.sharknoon.internal_dsl_generator.views.main.MainView;
+import elemental.json.Json;
 
 @Route(value = "generator", layout = MainView.class)
 @RouteAlias(value = "", layout = MainView.class)
@@ -52,12 +53,9 @@ public class GeneratorView extends VerticalLayout {
     }
 
     //Buffer for the File
-    MemoryBuffer memoryBuffer = new MemoryBuffer();
+    Upload upload = new Upload(new MemoryBuffer());
 
     private Component[] getUploadComponents() {
-        // Start Button
-        Button startButton = new Button("Generate");
-
         //Textfield for the package name
         TextField packageNameField = new TextField();
         packageNameField.setLabel("Package Name");
@@ -65,7 +63,6 @@ public class GeneratorView extends VerticalLayout {
         packageNameField.setRequired(true);
 
         //The upload Element for uploading the grammar file
-        Upload upload = new Upload(memoryBuffer);
         upload.setAcceptedFileTypes(".bnf", ".ebnf");
         upload.setMaxFiles(1);
         upload.setMaxFileSize(5 * 1024 * 1024);
@@ -78,13 +75,6 @@ public class GeneratorView extends VerticalLayout {
         Span dropLabel = new Span("Drop grammar file here");
         upload.setDropLabel(dropLabel);
 
-        //Adding Succeed Listener
-        upload.addSucceededListener(event -> {
-            if (!packageNameField.getValue().isEmpty()) {
-                startButton.setEnabled(true);
-            }
-        });
-
         //Adding File Rejection Listener
         upload.addFileRejectedListener(event -> {
             Notification errorNotification = new Notification();
@@ -93,53 +83,62 @@ public class GeneratorView extends VerticalLayout {
             errorNotification.open();
         });
 
+        // Start Button
+        Button startButton = new Button("Generate");
+        startButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        //Download Button
+        Button downloadButton = new Button("Download");
+        downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
+        downloadButton.getStyle().set("margin-top", "var(--lumo-space-m)");
+        downloadButton.setVisible(false);
+        downloadButton.addClickListener(e -> {
+            downloadButton.setVisible(false);
+            startButton.setVisible(true);
+            packageNameField.clear();
+            //Resetting the uploaded File
+            upload.setReceiver(new MemoryBuffer());
+            upload.getElement().setPropertyJson("files", Json.createArray());
+        });
+
+        //Anchor for the download button
+        Anchor downloadAnchor = new Anchor();
+        downloadAnchor.getElement().setAttribute("download", true);
+        downloadAnchor.add(downloadButton);
 
         startButton.addClickListener(event -> {
             String packageNameFieldValue = packageNameField.getValue();
-            if (!validateInput(packageNameFieldValue, memoryBuffer)) {
+            if (!validateInput(packageNameFieldValue, (MemoryBuffer) upload.getReceiver())) {
                 return;
             }
             try {
-                StreamResource resource = GeneratorService.generate(memoryBuffer, packageNameFieldValue);
-
-                Label label = new Label("Congratulations, your generated File is ready to be downloaded :)");
-
-                Button downloadButton = new Button("Download");
-                Anchor downloadAnchor = new Anchor();
+                StreamResource resource = GeneratorService.generate((MemoryBuffer) upload.getReceiver(), packageNameFieldValue);
                 downloadAnchor.setHref(resource);
-                downloadAnchor.getElement().setAttribute("download", true);
-                downloadAnchor.add(downloadButton);
-
-                Dialog dialog = new Dialog();
-                dialog.add(new VerticalLayout(label, downloadAnchor));
-                dialog.setWidth("400px");
-                dialog.setHeight("150px");
-                dialog.open();
-                dialog.addDialogCloseActionListener(event1 -> {
-                    
-                });
-
-                downloadButton.addClickListener(e -> dialog.close());
+                startButton.setVisible(false);
+                downloadButton.setVisible(true);
             } catch (Exception e) {
                 e.printStackTrace();
                 Notification notification = new Notification("Error during Generation " + e);
                 notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                notification.setDuration(1000 * 5);
                 notification.open();
             }
         });
-        return new Component[]{packageNameField, upload, startButton};
+        return new Component[]{packageNameField, upload, startButton, downloadAnchor};
     }
 
     private boolean validateInput(String packageName, MemoryBuffer buffer) {
         if (packageName.isEmpty()) {
-            Notification n = new Notification("Please enter a package name");
-            n.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            n.open();
+            Notification notification = new Notification("Please enter a package name");
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            notification.setDuration(1000 * 5);
+            notification.open();
             return false;
-        } else if (memoryBuffer.getFileData() == null) {
-            Notification n = new Notification("Please upload a grammar file");
-            n.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            n.open();
+        } else if (buffer.getFileData() == null) {
+            Notification notification = new Notification("Please upload a grammar file");
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+            notification.setDuration(1000 * 5);
+            notification.open();
             return false;
         }
         return true;

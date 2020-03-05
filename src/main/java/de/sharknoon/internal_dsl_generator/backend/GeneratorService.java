@@ -26,22 +26,17 @@ public class GeneratorService {
         //Run the Generation itself
         Generator.run(genDirectory, packageName, grammarFile);
 
-        //Create the new resulting Zip file from the directory with the generated files
-        Path zip = FileUtils.zipDirectory(
-                genDirectory,
-                Paths.get(setZipFileEnding(buffer.getFileName()))
-        );
+        //Create the new resulting Zip stream from the directory with the generated files
+        ByteArrayOutputStream zip = FileUtils.zipDirectory(genDirectory);
 
         //Delete all the unnecessary Files and Directories
         FileUtils.deleteFileOrFolder(genDirectory);
         FileUtils.deleteFileOrFolder(grammarFile);
 
         //Creating Vaadin StreamResource to download the zip file in the ui
-        InputStream zipStream = Files.newInputStream(zip);
-
         return new StreamResource(
-                zip.getFileName().toString(),
-                () -> zipStream
+                setZipFileEnding(buffer.getFileName()),
+                () -> new ByteArrayInputStream(zip.toByteArray())
         );
     }
 

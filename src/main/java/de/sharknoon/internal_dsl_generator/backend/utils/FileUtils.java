@@ -1,6 +1,8 @@
 package de.sharknoon.internal_dsl_generator.backend.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Consumer;
@@ -12,8 +14,9 @@ import static java.nio.file.FileVisitResult.TERMINATE;
 
 public class FileUtils {
 
-    public static Path zipDirectory(Path directoryToZip, Path zipFile) throws IOException {
-        try (ZipOutputStream zs = new ZipOutputStream(Files.newOutputStream(zipFile))) {
+    public static ByteArrayOutputStream zipDirectory(Path directoryToZip) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ZipOutputStream zs = new ZipOutputStream(out)) {
 
             Files.walk(directoryToZip)
                     .filter(path -> !Files.isDirectory(path))
@@ -29,7 +32,7 @@ public class FileUtils {
                     });
         }
 
-        return zipFile;
+        return out;
     }
 
     public static void deleteFileOrFolder(final Path path) throws IOException {
@@ -60,7 +63,5 @@ public class FileUtils {
             }
         });
     }
-
-    ;
 
 }
