@@ -1,5 +1,5 @@
 # Run mvnw package first
-FROM openjdk:11-jdk-alpine
+FROM openjdk:11
 # Adding a User with non root privileges, optional
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
