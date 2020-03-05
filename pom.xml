@@ -1,9 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>de.sharknoon.internal-dsl-generator</groupId>
+
+    <groupId>de.sharknoon</groupId>
     <artifactId>internal-dsl-generator</artifactId>
+    <version>1.0</version>
+
     <name>Internal DSL Generator</name>
-    <version>2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -245,7 +249,7 @@
                             <trimStackTrace>false</trimStackTrace>
                             <enableAssertions>true</enableAssertions>
                             <systemPropertyVariables>
-                                <!-- Pass location of downloaded webdrivers to the tests -->
+                                <!-- Pass location of downloaded web drivers to the tests -->
                                 <webdriver.chrome.driver>${webdriver.chrome.driver}</webdriver.chrome.driver>
                             </systemPropertyVariables>
                         </configuration>

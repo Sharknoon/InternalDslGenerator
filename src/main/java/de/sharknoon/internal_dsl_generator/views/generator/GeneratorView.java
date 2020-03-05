@@ -1,14 +1,11 @@
 package de.sharknoon.internal_dsl_generator.views.generator;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -53,7 +50,7 @@ public class GeneratorView extends VerticalLayout {
     }
 
     //Buffer for the File
-    Upload upload = new Upload(new MemoryBuffer());
+    private final Upload upload = new Upload(new MemoryBuffer());
 
     private Component[] getUploadComponents() {
         //Textfield for the package name
@@ -118,10 +115,7 @@ public class GeneratorView extends VerticalLayout {
                 downloadButton.setVisible(true);
             } catch (Exception e) {
                 e.printStackTrace();
-                Notification notification = new Notification("Error during Generation " + e);
-                notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-                notification.setDuration(1000 * 5);
-                notification.open();
+                showErrorNotification("Error during Generation " + e);
             }
         });
         return new Component[]{packageNameField, upload, startButton, downloadAnchor};
@@ -129,19 +123,20 @@ public class GeneratorView extends VerticalLayout {
 
     private boolean validateInput(String packageName, MemoryBuffer buffer) {
         if (packageName.isEmpty()) {
-            Notification notification = new Notification("Please enter a package name");
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            notification.setDuration(1000 * 5);
-            notification.open();
+            showErrorNotification("Please enter a package name");
             return false;
         } else if (buffer.getFileData() == null) {
-            Notification notification = new Notification("Please upload a grammar file");
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-            notification.setDuration(1000 * 5);
-            notification.open();
+            showErrorNotification("Please upload a grammar file");
             return false;
         }
         return true;
+    }
+
+    private void showErrorNotification(String s) {
+        Notification notification = new Notification(s);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        notification.setDuration(1000 * 5);
+        notification.open();
     }
 
 }

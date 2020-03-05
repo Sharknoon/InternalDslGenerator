@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "vaadin.compatibilityMode",
+      "type": "java.lang.Boolean",
+      "description": "Weather to run Vaadin in compatibilityMode or not."
+    }
+  ]
+}

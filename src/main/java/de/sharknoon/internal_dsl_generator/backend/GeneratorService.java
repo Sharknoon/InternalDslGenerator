@@ -1,16 +1,16 @@
 package de.sharknoon.internal_dsl_generator.backend;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
 import de.sharknoon.internal_dsl_generator.backend.utils.FileUtils;
-import de.sharknoon.internal_dsl_generator.views.generator.GeneratorState;
 import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 @Service
 public class GeneratorService {
