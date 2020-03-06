@@ -3,6 +3,7 @@
         <server>
             <id>github</id>
             <username>Sharknoon</username>
+            <!-- Public read-only package key -->
             <password>b6250ca011fcaa91dff678a35419eea6ec834f43</password>
         </server>
     </servers>
