@@ -13,8 +13,6 @@ and visit [localhost:8080](http://localhost:8080)
 ## Run docker
 Run
 ```
-git clone https://github.com/Sharknoon/InternalDslGenerator.git
-cd InternalDslGenerator
 docker run -p 8080:8080 sharknoon/internal-dsl-generator
 ```
 and visit [localhost:8080](http://localhost:8080)
