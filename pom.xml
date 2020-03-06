@@ -47,10 +47,17 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+
         <repository>
             <id>github</id>
-            <name>GitHub Sharknoon Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/Sharknoon/AntlrTest</url>
+            <name>GitHub Etgramli Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/etgramli/AntlrTest</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -81,7 +88,7 @@
         <dependency>
             <groupId>de.etgramlich</groupId>
             <artifactId>antlr-test</artifactId>
-            <version>0.9</version>
+            <version>0.9-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
