@@ -16,7 +16,7 @@ FROM openjdk:11
 
 COPY --from=MAVEN /tmp/target/*.jar app.jar
 # Meh, hopefully we don't need the stringtemplate in the future anymore
-COPY target/src/main/resources/ebnf.stg src/main/resources/ebnf.stg
+COPY src/main/resources/ebnf.stg src/main/resources/ebnf.stg
 
 EXPOSE 8080
 
