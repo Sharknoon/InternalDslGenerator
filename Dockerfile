@@ -1,11 +1,13 @@
 FROM maven:3-jdk-11 AS MAVEN
 
 COPY pom.xml /tmp/
+# Needed to download from the github package registry
+COPY settings.xml /tmp/
 COPY src /tmp/src/
 
 WORKDIR /tmp/
 
-RUN mvn package -Pproduction
+RUN mvn package -P production -s settings.xml
 
 
 FROM openjdk:11
