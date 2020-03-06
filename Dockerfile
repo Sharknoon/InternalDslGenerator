@@ -12,7 +12,7 @@ RUN mvn com.github.eirslett:frontend-maven-plugin:1.9.1:install-node-and-npm -Dn
 RUN mvn package -P production -s settings.xml
 
 
-FROM openjdk:11-jre
+FROM openjdk:11-jre-slim
 
 COPY --from=MAVEN /tmp/target/*.jar app.jar
 # Meh, hopefully we don't need the stringtemplate in the future anymore
