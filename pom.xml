@@ -84,7 +84,7 @@
         <dependency>
             <groupId>de.etgramlich</groupId>
             <artifactId>antlr-test</artifactId>
-            <version>0.9-SNAPSHOT</version>
+            <version>0.9-snapshot</version>
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
