@@ -10,7 +10,7 @@ mvn spring-boot:run -Dserver.id=github -Dserver.username=YOUR_GITHUB_USERNAME -D
 ```
 and visit [localhost:8080](http://localhost:8080)
 
-Be sure to grant the access token the scope ```read:packages```!
+Be sure to grant the scope ```read:packages``` to the access token!
 
 ## Run prebuilt docker
 Run
@@ -24,6 +24,6 @@ Run
 ```
 git clone https://github.com/Sharknoon/InternalDslGenerator.git
 cd InternalDslGenerator
-docker build -t sharknoon/internal-dsl-generator:latest .
+docker build -t YOUR_DOCKER_USERNAME/internal-dsl-generator:latest .
 ```
 and deploy it to a repository near you
