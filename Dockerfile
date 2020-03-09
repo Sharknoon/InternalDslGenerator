@@ -13,6 +13,7 @@ COPY settings.xml /tmp/
 WORKDIR /tmp/
 
 RUN mvn com.github.eirslett:frontend-maven-plugin:1.9.1:install-node-and-npm -DnodeVersion="v12.16.1"
+# build it
 RUN mvn package -P production -s settings.xml
 # ---
 FROM openjdk:11-jre-slim
