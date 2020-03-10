@@ -47,20 +47,23 @@ public class FileUtils {
 
             @Override
             public FileVisitResult visitFileFailed(final Path file, final IOException e) {
-                return handleException(e);
+                handleException(e);
+                return TERMINATE;
             }
 
             @Override
             public FileVisitResult postVisitDirectory(final Path dir, final IOException e)
                     throws IOException {
-                if (e != null) return handleException(e);
+                if (e != null) {
+                    handleException(e);
+                    return TERMINATE;
+                }
                 Files.delete(dir);
                 return CONTINUE;
             }
 
-            private FileVisitResult handleException(final IOException e) {
+            private void handleException(final IOException e) {
                 e.printStackTrace();
-                return TERMINATE;
             }
         });
     }

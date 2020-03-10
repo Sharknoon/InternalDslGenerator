@@ -5,6 +5,7 @@
 */
 
 /* Example: CSS class name to center align the content . */
+/*noinspection ALL*/
 .centered-content {
   margin: 0 auto;
   max-width: 250px;

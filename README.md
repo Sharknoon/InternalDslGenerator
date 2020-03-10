@@ -1,5 +1,5 @@
 # Internal DSL Generator UI
-This is a litte Webinterface for [etgramli](https://github.com/etgramli)s [AntlrTest Internal Java DSL Generator](https://github.com/etgramli/AntlrTest)
+This is a little webinterface for [etgramli](https://github.com/etgramli)s [AntlrTest Internal Java DSL Generator](https://github.com/etgramli/AntlrTest)
 
 ## Build and Run local
 Run

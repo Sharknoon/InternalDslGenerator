@@ -34,14 +34,14 @@ public class MainView extends AppLayout {
         addToNavbar(menu);
     }
 
-    private static Tabs createMenuTabs() {
+    private Tabs createMenuTabs() {
         final Tabs tabs = new Tabs();
         tabs.setId("tabs");
         tabs.add(getAvailableTabs());
         return tabs;
     }
 
-    private static Tab[] getAvailableTabs() {
+    private Tab[] getAvailableTabs() {
         return new Tab[]{
                 createTab("Generator", VaadinIcon.COGS.create(), GeneratorView.class),
                 createTab("Help", VaadinIcon.QUESTION.create(), HelpView.class),
@@ -49,18 +49,18 @@ public class MainView extends AppLayout {
         };
     }
 
-    private static Tab createTab(String title, Icon icon, Class<? extends Component> viewClass) {
+    private Tab createTab(String title, Icon icon, Class<? extends Component> viewClass) {
         return createTab(populateLink(new RouterLink(null, viewClass), title), icon);
     }
 
-    private static Tab createTab(Component content, Icon icon) {
+    private Tab createTab(Component content, Icon icon) {
         final Tab tab = new Tab(icon);
         tab.addThemeVariants(TabVariant.LUMO_ICON_ON_TOP);
         tab.add(content);
         return tab;
     }
 
-    private static <T extends HasComponents> T populateLink(T a, String title) {
+    private <T extends HasComponents> T populateLink(T a, String title) {
         a.add(title);
         return a;
     }

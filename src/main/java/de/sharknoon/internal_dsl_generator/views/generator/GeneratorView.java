@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @CssImport("./styles/views/generator/generator-view.css")
 public class GeneratorView extends VerticalLayout {
 
-    private GeneratorService service;
+    private final GeneratorService service;
 
     public GeneratorView(@Autowired GeneratorService service) {
         this.service = service;
