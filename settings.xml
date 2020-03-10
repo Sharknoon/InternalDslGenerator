@@ -2,9 +2,9 @@
     <servers>
         <server>
             <id>github</id>
-            <username>Sharknoon</username>
+            <username>sharknoon</username>
             <!-- Public read-only package key -->
-            <password>b6250ca011fcaa91dff678a35419eea6ec834f43</password>
+            <password>XXX</password>
         </server>
     </servers>
 </settings>
