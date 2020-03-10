@@ -19,8 +19,6 @@ RUN mvn package -P production -s settings.xml
 FROM adoptopenjdk:13-jre-hotspot
 
 COPY --from=MAVEN /tmp/target/*.jar app.jar
-# Meh, hopefully we don't need the stringtemplate in the future anymore
-COPY src/main/resources/ebnf.stg src/main/resources/ebnf.stg
 
 EXPOSE 8080
 
