@@ -1,58 +1,51 @@
-package de.sharknoon.internal_dsl_generator.backend;
+package de.sharknoon.internal_dsl_generator.backend
 
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.server.StreamResource;
-import de.sharknoon.internal_dsl_generator.backend.utils.FileUtils;
-import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer
+import com.vaadin.flow.server.InputStreamFactory
+import com.vaadin.flow.server.StreamResource
+import de.etgramlich.dsl.Main
+import de.sharknoon.internal_dsl_generator.utils.deleteRecursive
+import de.sharknoon.internal_dsl_generator.utils.writeToFile
+import de.sharknoon.internal_dsl_generator.utils.toZipFile
+import org.springframework.stereotype.Service
+import java.io.ByteArrayInputStream
+import java.nio.file.Files
+import java.nio.file.Path
 
 @Service
-public class GeneratorService implements Serializable {
+class GeneratorService {
 
-    public StreamResource generate(MemoryBuffer buffer, String packageName) throws IOException {
+    fun generate(buffer: MemoryBuffer, packageName: String): StreamResource {
         //Creating directory to put the generated files in
-        Path genDirectory = Files.createTempDirectory("generated");
+        val genDirectory = Files.createTempDirectory("generated")
         //Creating a file to save the uploaded grammar in
-        Path grammarFile = Files.createTempFile("grammar", ".tmp");
+        val grammarFile = Files.createTempFile("grammar", ".tmp")
         //Save the uploaded grammar in that file
-        writeBufferToFile(buffer, grammarFile);
+        buffer.writeToFile(grammarFile)
 
         //Run the Generation itself
-        Generator.run(genDirectory, packageName, grammarFile);
+        runInternalDSLGenerator(genDirectory, packageName, grammarFile)
 
         //Create the new resulting Zip stream from the directory with the generated files
-        ByteArrayOutputStream zip = FileUtils.zipDirectory(genDirectory);
+        val zip = genDirectory.toZipFile()
 
         //Delete all the unnecessary Files and Directories
-        FileUtils.deleteFileOrFolder(genDirectory);
-        FileUtils.deleteFileOrFolder(grammarFile);
+        genDirectory.deleteRecursive()
+        grammarFile.deleteRecursive()
 
         //Creating Vaadin StreamResource to download the zip file in the ui
-        return new StreamResource(
-                setZipFileEnding(buffer.getFileName()),
-                () -> new ByteArrayInputStream(zip.toByteArray())
-        );
+        return StreamResource(
+                buffer.fileName.replaceAfterLast('.', "zip"),
+                InputStreamFactory { ByteArrayInputStream(zip.toByteArray()) }
+        )
     }
 
+}
 
-    private void writeBufferToFile(MemoryBuffer buffer, Path file) throws IOException {
-        Files.copy(
-                buffer.getInputStream(),
-                file,
-                StandardCopyOption.REPLACE_EXISTING
-        );
-    }
-
-    private String setZipFileEnding(String fileName) {
-        int i = fileName.lastIndexOf('.');
-        return fileName.substring(0, i) + ".zip";
-    }
-
+fun runInternalDSLGenerator(outputDirectoryPath: Path, packageName: String, grammarFile: Path) {
+    Main.main(arrayOf(
+            "-d", outputDirectoryPath.toAbsolutePath().toString(),
+            "-p", packageName,
+            "-g", grammarFile.toAbsolutePath().toString()
+    ))
 }
