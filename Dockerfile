@@ -1,4 +1,4 @@
-FROM maven:3-jdk-11 AS MAVEN
+FROM maven:3-jdk-13 AS MAVEN
 
 # The POM itself for maven
 COPY pom.xml /tmp/
@@ -16,7 +16,7 @@ RUN mvn com.github.eirslett:frontend-maven-plugin:1.9.1:install-node-and-npm -Dn
 # build it
 RUN mvn package -P production -s settings.xml
 # ---
-FROM openjdk:11-jre-slim
+FROM adoptopenjdk:13-jre-hotspot
 
 COPY --from=MAVEN /tmp/target/*.jar app.jar
 # Meh, hopefully we don't need the stringtemplate in the future anymore

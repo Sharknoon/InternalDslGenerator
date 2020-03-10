@@ -1,6 +1,6 @@
 package de.sharknoon.internal_dsl_generator.backend;
 
-import de.etgramlich.Main;
+import de.etgramlich.dsl.Main;
 
 import java.nio.file.Path;
 

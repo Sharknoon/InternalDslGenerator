@@ -9,7 +9,7 @@ import de.sharknoon.internal_dsl_generator.views.main.MainView;
 
 @Route(value = "help", layout = MainView.class)
 @PageTitle("Help")
-@CssImport("styles/views/help/help-view.css")
+@CssImport("./styles/views/help/help-view.css")
 public class HelpView extends Div {
 
     public HelpView() {

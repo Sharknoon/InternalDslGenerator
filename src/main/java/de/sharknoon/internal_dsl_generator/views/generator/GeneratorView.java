@@ -20,14 +20,18 @@ import com.vaadin.flow.server.StreamResource;
 import de.sharknoon.internal_dsl_generator.backend.GeneratorService;
 import de.sharknoon.internal_dsl_generator.views.main.MainView;
 import elemental.json.Json;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Route(value = "generator", layout = MainView.class)
 @RouteAlias(value = "", layout = MainView.class)
 @PageTitle("Generator")
-@CssImport("styles/views/generator/generator-view.css")
+@CssImport("./styles/views/generator/generator-view.css")
 public class GeneratorView extends VerticalLayout {
 
-    public GeneratorView() {
+    private GeneratorService service;
+
+    public GeneratorView(@Autowired GeneratorService service) {
+        this.service = service;
         setId("generator-view");
         addComponents();
     }
@@ -109,7 +113,7 @@ public class GeneratorView extends VerticalLayout {
                 return;
             }
             try {
-                StreamResource resource = GeneratorService.generate((MemoryBuffer) upload.getReceiver(), packageNameFieldValue);
+                StreamResource resource = service.generate((MemoryBuffer) upload.getReceiver(), packageNameFieldValue);
                 downloadAnchor.setHref(resource);
                 startButton.setVisible(false);
                 downloadButton.setVisible(true);

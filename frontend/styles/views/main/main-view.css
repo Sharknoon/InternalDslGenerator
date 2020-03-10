@@ -1,3 +1,6 @@
+#tabs {
+  max-width: 100%
+}
 [part='navbar'] {
   align-items: center;
   justify-content: center;

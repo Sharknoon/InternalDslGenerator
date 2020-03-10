@@ -8,14 +8,15 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 @Service
-public class GeneratorService {
+public class GeneratorService implements Serializable {
 
-    public static StreamResource generate(MemoryBuffer buffer, String packageName) throws IOException {
+    public StreamResource generate(MemoryBuffer buffer, String packageName) throws IOException {
         //Creating directory to put the generated files in
         Path genDirectory = Files.createTempDirectory("generated");
         //Creating a file to save the uploaded grammar in
@@ -41,7 +42,7 @@ public class GeneratorService {
     }
 
 
-    private static void writeBufferToFile(MemoryBuffer buffer, Path file) throws IOException {
+    private void writeBufferToFile(MemoryBuffer buffer, Path file) throws IOException {
         Files.copy(
                 buffer.getInputStream(),
                 file,
@@ -49,7 +50,7 @@ public class GeneratorService {
         );
     }
 
-    private static String setZipFileEnding(String fileName) {
+    private String setZipFileEnding(String fileName) {
         int i = fileName.lastIndexOf('.');
         return fileName.substring(0, i) + ".zip";
     }

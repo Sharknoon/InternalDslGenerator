@@ -9,7 +9,7 @@ import de.sharknoon.internal_dsl_generator.views.main.MainView;
 
 @Route(value = "about", layout = MainView.class)
 @PageTitle("About")
-@CssImport("styles/views/about/about-view.css")
+@CssImport("./styles/views/about/about-view.css")
 public class AboutView extends Div {
 
     public AboutView() {
