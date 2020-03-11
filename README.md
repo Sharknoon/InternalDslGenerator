@@ -6,7 +6,7 @@ Run
 ```
 git clone https://github.com/Sharknoon/InternalDslGenerator.git
 cd InternalDslGenerator
-mvn spring-boot:run -Dserver.id=github -Dserver.username=YOUR_GITHUB_USERNAME -Dserver.password=YOUR_GITHUB_ACCESS_TOKEN
+mvn spring-boot:run -s settings.xml -Dgithub.username=YOUR_GITHUB_USERNAME -Dgithub.token=YOUR_GITHUB_ACCESS_TOKEN
 ```
 and visit [localhost:8080](http://localhost:8080)
 
@@ -24,6 +24,7 @@ Run
 ```
 git clone https://github.com/Sharknoon/InternalDslGenerator.git
 cd InternalDslGenerator
+mvn package -P production -s settings.xml -Dgithub.username=YOUR_GITHUB_USERNAME -Dgithub.token=YOUR_GITHUB_ACCESS_TOKEN
 docker build -t YOUR_DOCKER_USERNAME/internal-dsl-generator:latest .
 ```
 and deploy it to a repository near you
