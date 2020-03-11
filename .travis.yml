@@ -1,0 +1,16 @@
+sudo: required
+language: java
+jdk: openjdk13
+
+services:
+  - docker
+
+script:
+  - ./mvnw com.github.eirslett:frontend-maven-plugin:1.9.1:install-node-and-npm -DnodeVersion="v12.16.1"
+  - ./mvnw package -P production -s settings.xml
+
+after_success:
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN
+  - export IMAGE_NAME=sharknoon/internal-dsl-generator:latest
+  - docker build -t $IMAGE_NAME .
+  - docker push $IMAGE_NAME
