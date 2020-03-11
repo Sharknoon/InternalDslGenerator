@@ -1,4 +1,5 @@
-sudo: required
+dist: bionic
+os: linux
 language: java
 jdk: openjdk13
 
