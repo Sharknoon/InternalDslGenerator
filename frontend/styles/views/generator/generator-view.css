@@ -4,11 +4,6 @@
     padding-left: 10%;
     padding-right: 10%;
 }
-
-#downloadButton {
-    margin-top: 1rem;
-}
-
 :host {
     display: block;
 }

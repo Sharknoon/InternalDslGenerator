@@ -1,5 +1,5 @@
 /*noinspection ALL*/
-[part='navbar'] {
-  align-items: start;
-  justify-content: start;
+#tabs {
+  max-width: 100%
 }
+
