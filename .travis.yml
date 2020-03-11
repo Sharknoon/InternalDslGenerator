@@ -12,7 +12,7 @@ cache:
 
 script:
   - ./mvnw com.github.eirslett:frontend-maven-plugin:1.9.1:install-node-and-npm -DnodeVersion="v12.16.1"
-  - ./mvnw package -P production -s .travis/settings.xml
+  - ./mvnw package -P production -s settings.xml
 
 after_success:
   - docker login -u $DOCKER_USERNAME -p "$DOCKER_TOKEN"
