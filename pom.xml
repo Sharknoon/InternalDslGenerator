@@ -68,6 +68,13 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Markdown to HTML Parser -->
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+            <version>0.60.2</version>
+        </dependency>
+        <!-- Etgramlis Generator -->
         <dependency>
             <groupId>de.etgramlich</groupId>
             <artifactId>antlr-test</artifactId>
