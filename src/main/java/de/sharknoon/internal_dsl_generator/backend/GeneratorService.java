@@ -1,8 +1,8 @@
 package de.sharknoon.internal_dsl_generator.backend;
 
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.server.StreamResource;
 import de.sharknoon.internal_dsl_generator.backend.utils.FileUtils;
+import de.sharknoon.internal_dsl_generator.views.generator.Project;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -11,21 +11,30 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.Paths;
+import java.util.Objects;
 
 @Service
 public class GeneratorService implements Serializable {
 
-    public StreamResource generate(MemoryBuffer buffer, String packageName) throws IOException {
+    public StreamResource generate(Project project) throws IOException {
+        Objects.requireNonNull(project);
         //Creating directory to put the generated files in
         Path genDirectory = Files.createTempDirectory("generated");
         //Creating a file to save the uploaded grammar in
         Path grammarFile = Files.createTempFile("grammar", ".tmp");
         //Save the uploaded grammar in that file
-        writeBufferToFile(buffer, grammarFile);
+        Files.writeString(grammarFile, project.getGrammar());
 
         //Run the Generation itself
-        Generator.run(genDirectory, packageName, grammarFile);
+        Generator.Builder builder = Generator.newBuilder()
+                .outputDirectory(genDirectory)
+                .packageName(project.getPackageName())
+                .grammarFile(grammarFile);
+        if (project.isIncludeDOTGraph()) {
+            builder.dotGraph(Paths.get("graph"));
+        }
+        builder.run();
 
         //Create the new resulting Zip stream from the directory with the generated files
         ByteArrayOutputStream zip = FileUtils.zipDirectory(genDirectory);
@@ -36,23 +45,22 @@ public class GeneratorService implements Serializable {
 
         //Creating Vaadin StreamResource to download the zip file in the ui
         return new StreamResource(
-                setZipFileEnding(buffer.getFileName()),
+                setZipFileEnding(project.getGrammarName()),
                 () -> new ByteArrayInputStream(zip.toByteArray())
         );
     }
 
-
-    private void writeBufferToFile(MemoryBuffer buffer, Path file) throws IOException {
-        Files.copy(
-                buffer.getInputStream(),
-                file,
-                StandardCopyOption.REPLACE_EXISTING
-        );
-    }
-
     private String setZipFileEnding(String fileName) {
-        int i = fileName.lastIndexOf('.');
-        return fileName.substring(0, i) + ".zip";
+        String lhs;
+        int i;
+        if (fileName == null || fileName.isEmpty()) {
+            lhs = "dsl";
+        } else if ((i = fileName.lastIndexOf('.')) < 0) {
+            lhs = fileName;
+        } else {
+            lhs = fileName.substring(0, i);
+        }
+        return lhs + ".zip";
     }
 
 }

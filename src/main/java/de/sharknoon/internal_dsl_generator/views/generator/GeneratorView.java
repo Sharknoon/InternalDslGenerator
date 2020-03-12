@@ -3,13 +3,18 @@ package de.sharknoon.internal_dsl_generator.views.generator;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
@@ -22,6 +27,11 @@ import de.sharknoon.internal_dsl_generator.views.main.MainView;
 import elemental.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
+
 @Route(value = "generator", layout = MainView.class)
 @RouteAlias(value = "", layout = MainView.class)
 @PageTitle("Generator")
@@ -33,6 +43,7 @@ public class GeneratorView extends VerticalLayout {
     public GeneratorView(@Autowired GeneratorService service) {
         this.service = service;
         setId("generator-view");
+        setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.STRETCH);
         addComponents();
     }
 
@@ -59,9 +70,16 @@ public class GeneratorView extends VerticalLayout {
     private Component[] getUploadComponents() {
         //Textfield for the package name
         TextField packageNameField = new TextField();
+        packageNameField.setPlaceholder(DEFAULT_PACKAGE_NAME);
         packageNameField.setLabel("Package Name");
-        packageNameField.setPlaceholder("de.etgramlich");
         packageNameField.setRequired(true);
+
+        //Editor section for the grammar
+        TextArea grammarArea = new TextArea();
+        grammarArea.setPlaceholder(DEFAULT_BNF);
+        grammarArea.setLabel("Grammar");
+        grammarArea.setRequired(true);
+        grammarArea.setWidthFull();
 
         //The upload Element for uploading the grammar file
         upload.setAcceptedFileTypes(".bnf", ".ebnf");
@@ -84,6 +102,19 @@ public class GeneratorView extends VerticalLayout {
             errorNotification.open();
         });
 
+        //Fill the Text Area with the uploaded File
+        upload.addSucceededListener(event -> {
+            MemoryBuffer buffer = (MemoryBuffer) event.getUpload().getReceiver();
+            InputStream inputStream = buffer.getInputStream();
+            String grammar = new BufferedReader(new InputStreamReader(inputStream)).lines()
+                    .parallel().collect(Collectors.joining("\n"));
+            grammarArea.setValue(grammar);
+        });
+
+        //Checkbox for including the DOT-Graph
+        Checkbox includeDOTGraphCheckbox = new Checkbox();
+        includeDOTGraphCheckbox.setLabel("Include DOT Graph");
+
         // Start Button
         Button startButton = new Button("Generate");
         startButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -97,9 +128,11 @@ public class GeneratorView extends VerticalLayout {
             downloadButton.setVisible(false);
             startButton.setVisible(true);
             packageNameField.clear();
+            grammarArea.clear();
             //Resetting the uploaded File
             upload.setReceiver(new MemoryBuffer());
             upload.getElement().setPropertyJson("files", Json.createArray());
+            includeDOTGraphCheckbox.setValue(false);
         });
 
         //Anchor for the download button
@@ -108,12 +141,15 @@ public class GeneratorView extends VerticalLayout {
         downloadAnchor.add(downloadButton);
 
         startButton.addClickListener(event -> {
-            String packageNameFieldValue = packageNameField.getValue();
-            if (!validateInput(packageNameFieldValue, (MemoryBuffer) upload.getReceiver())) {
+            String grammar = grammarArea.getValue();
+            String grammarName = ((MemoryBuffer) upload.getReceiver()).getFileName();
+            String packageName = packageNameField.getValue();
+            boolean includeDOTGraph = includeDOTGraphCheckbox.getValue();
+            if (!validateInput(packageName, grammar)) {
                 return;
             }
             try {
-                StreamResource resource = service.generate((MemoryBuffer) upload.getReceiver(), packageNameFieldValue);
+                StreamResource resource = service.generate(new Project(grammar, grammarName, packageName, includeDOTGraph));
                 downloadAnchor.setHref(resource);
                 startButton.setVisible(false);
                 downloadButton.setVisible(true);
@@ -122,14 +158,38 @@ public class GeneratorView extends VerticalLayout {
                 showErrorNotification("Error during Generation " + e);
             }
         });
-        return new Component[]{packageNameField, upload, startButton, downloadAnchor};
+
+
+
+        //Sample Button
+        Button showSampleButton = new Button("Show Sample");
+        showSampleButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        showSampleButton.addClickListener(event -> {
+           packageNameField.setValue(DEFAULT_PACKAGE_NAME);
+           grammarArea.setValue(DEFAULT_BNF);
+           includeDOTGraphCheckbox.setValue(true);
+        });
+
+        //Button Layout
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setSpacing(false);
+        buttonLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        buttonLayout.add(startButton, downloadAnchor, showSampleButton);
+
+        return new Component[]{
+                new Div(packageNameField),
+                new Div(grammarArea),
+                upload,
+                new Div(includeDOTGraphCheckbox),
+                buttonLayout
+        };
     }
 
-    private boolean validateInput(String packageName, MemoryBuffer buffer) {
+    private boolean validateInput(String packageName, String grammar) {
         if (packageName.isEmpty()) {
             showErrorNotification("Please enter a package name");
             return false;
-        } else if (buffer.getFileData() == null) {
+        } else if (grammar.isEmpty()) {
             showErrorNotification("Please upload a grammar file");
             return false;
         }
@@ -142,5 +202,34 @@ public class GeneratorView extends VerticalLayout {
         notification.setDuration(1000 * 5);
         notification.open();
     }
+
+    private final String DEFAULT_PACKAGE_NAME = "de.etgramli";
+
+    private final String DEFAULT_BNF = "<joi>\n" +
+            "    = <component>\n" +
+            "    ;\n" +
+            "\n" +
+            "<component>\n" +
+            "    = ('component' | 'singleton') <componentName>\n" +
+            "    <componentInterface> {<componentInterface>}\n" +
+            "    <componentMethod> {<componentMethod>}\n" +
+            "    {<componentField>}\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentName>\n" +
+            "    = String\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentInterface>\n" +
+            "    = 'impl' String\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentMethod>\n" +
+            "    = 'method' String\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentField>\n" +
+            "    = 'field' String\n" +
+            "    ;";
 
 }
