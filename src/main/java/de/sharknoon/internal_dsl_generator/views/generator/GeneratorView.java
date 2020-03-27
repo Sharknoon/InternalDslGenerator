@@ -146,7 +146,7 @@ public class GeneratorView extends VerticalLayout {
 
         IFrame graphIFrame = new IFrame();
         graphIFrame.setWidthFull();
-        graphIFrame.setHeight("750px");
+        graphIFrame.setHeight("0px");
         graphIFrame.getElement().setAttribute("frameBorder", "0");
 
         downloadButton.addClickListener(e -> {
@@ -160,6 +160,7 @@ public class GeneratorView extends VerticalLayout {
             upload.setReceiver(new MemoryBuffer());
             upload.getElement().setPropertyJson("files", Json.createArray());
             graph = null;
+            graphIFrame.setHeight("0px");
             includeDOTGraphCheckbox.setValue(false);
         });
 
@@ -194,6 +195,7 @@ public class GeneratorView extends VerticalLayout {
                     String specialUrl = url.replace('+',' ');
                     //getUI().ifPresent(ui -> ui.getPage().open(specialUrl));
                     graphIFrame.setSrc(specialUrl);
+                    graphIFrame.setHeight("750px");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
