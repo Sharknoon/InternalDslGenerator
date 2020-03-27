@@ -5,10 +5,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -30,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 @Route(value = "generator", layout = MainView.class)
@@ -66,6 +65,7 @@ public class GeneratorView extends VerticalLayout {
 
     //Buffer for the File
     private final Upload upload = new Upload(new MemoryBuffer());
+    private String graph = null;
 
     private Component[] getUploadComponents() {
         //Textfield for the package name
@@ -122,23 +122,46 @@ public class GeneratorView extends VerticalLayout {
         //Download Button
         Button downloadButton = new Button("Download");
         downloadButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-        downloadButton.getStyle().set("margin-top", "var(--lumo-space-m)");
         downloadButton.setVisible(false);
-        downloadButton.addClickListener(e -> {
-            downloadButton.setVisible(false);
-            startButton.setVisible(true);
-            packageNameField.clear();
-            grammarArea.clear();
-            //Resetting the uploaded File
-            upload.setReceiver(new MemoryBuffer());
-            upload.getElement().setPropertyJson("files", Json.createArray());
-            includeDOTGraphCheckbox.setValue(false);
-        });
 
         //Anchor for the download button
         Anchor downloadAnchor = new Anchor();
         downloadAnchor.getElement().setAttribute("download", true);
         downloadAnchor.add(downloadButton);
+
+        //Sample Button
+        Button showSampleButton = new Button("Show Sample");
+        showSampleButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        showSampleButton.addClickListener(event -> {
+            packageNameField.setValue(DEFAULT_PACKAGE_NAME);
+            grammarArea.setValue(DEFAULT_BNF);
+            includeDOTGraphCheckbox.setValue(true);
+        });
+
+        //Button Layout
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.setSpacing(false);
+        buttonLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        buttonLayout.add(startButton, downloadAnchor, showSampleButton);
+
+        IFrame graphIFrame = new IFrame();
+        graphIFrame.setWidthFull();
+        graphIFrame.setHeight("750px");
+        graphIFrame.getElement().setAttribute("frameBorder", "0");
+
+        downloadButton.addClickListener(e -> {
+            downloadButton.setVisible(false);
+            startButton.setVisible(true);
+            showSampleButton.setVisible(true);
+            packageNameField.clear();
+            grammarArea.clear();
+            graphIFrame.setSrc("");
+            //Resetting the uploaded File
+            upload.setReceiver(new MemoryBuffer());
+            upload.getElement().setPropertyJson("files", Json.createArray());
+            graph = null;
+            includeDOTGraphCheckbox.setValue(false);
+        });
 
         startButton.addClickListener(event -> {
             String grammar = grammarArea.getValue();
@@ -149,39 +172,42 @@ public class GeneratorView extends VerticalLayout {
                 return;
             }
             try {
-                StreamResource resource = service.generate(new Project(grammar, grammarName, packageName, includeDOTGraph));
+                StreamResource resource = service.generate(
+                        new Project(
+                                grammar,
+                                grammarName,
+                                packageName,
+                                includeDOTGraph
+                        ),
+                        s -> graph = s
+                );
                 downloadAnchor.setHref(resource);
                 startButton.setVisible(false);
+                showSampleButton.setVisible(false);
                 downloadButton.setVisible(true);
+                //Show the graph
+                if (graph != null) {
+                    String encoded = URLEncoder.encode(graph, StandardCharsets.UTF_8);
+                    String prefix = "https://dreampuf.github.io/GraphvizOnline/#";
+                    String url = prefix + encoded;
+                    //strange but blanks are nor encoded
+                    String specialUrl = url.replace('+',' ');
+                    //getUI().ifPresent(ui -> ui.getPage().open(specialUrl));
+                    graphIFrame.setSrc(specialUrl);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 showErrorNotification("Error during Generation " + e);
             }
         });
 
-
-
-        //Sample Button
-        Button showSampleButton = new Button("Show Sample");
-        showSampleButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        showSampleButton.addClickListener(event -> {
-           packageNameField.setValue(DEFAULT_PACKAGE_NAME);
-           grammarArea.setValue(DEFAULT_BNF);
-           includeDOTGraphCheckbox.setValue(true);
-        });
-
-        //Button Layout
-        HorizontalLayout buttonLayout = new HorizontalLayout();
-        buttonLayout.setSpacing(false);
-        buttonLayout.setJustifyContentMode(JustifyContentMode.BETWEEN);
-        buttonLayout.add(startButton, downloadAnchor, showSampleButton);
-
         return new Component[]{
                 new Div(packageNameField),
                 new Div(grammarArea),
                 upload,
                 new Div(includeDOTGraphCheckbox),
-                buttonLayout
+                buttonLayout,
+                graphIFrame
         };
     }
 
@@ -201,6 +227,10 @@ public class GeneratorView extends VerticalLayout {
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         notification.setDuration(1000 * 5);
         notification.open();
+    }
+
+    private void openGraph(String graph) {
+
     }
 
     private final String DEFAULT_PACKAGE_NAME = "de.etgramli";

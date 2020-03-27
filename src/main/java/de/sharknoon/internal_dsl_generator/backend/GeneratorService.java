@@ -12,12 +12,14 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @Service
 public class GeneratorService implements Serializable {
 
-    public StreamResource generate(Project project) throws IOException {
+    public StreamResource generate(Project project, Consumer<String> graph) throws IOException {
         Objects.requireNonNull(project);
         //Creating directory to put the generated files in
         Path genDirectory = Files.createTempDirectory("generated");
@@ -35,6 +37,10 @@ public class GeneratorService implements Serializable {
             builder.dotGraph(Paths.get("graph"));
         }
         builder.run();
+
+        //Get the graph string for the consumer
+        String graphString = Files.readString(genDirectory.resolve("graph.gv"));
+        graph.accept(graphString);
 
         //Create the new resulting Zip stream from the directory with the generated files
         ByteArrayOutputStream zip = FileUtils.zipDirectory(genDirectory);

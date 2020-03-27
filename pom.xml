@@ -12,7 +12,7 @@
         <java.version>13</java.version>
         <vaadin.version>15.0.0</vaadin.version>
         <project.encoding>UTF-8</project.encoding>
-        <generator.version>1.4</generator.version>
+        <generator.version>1.4.1</generator.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
