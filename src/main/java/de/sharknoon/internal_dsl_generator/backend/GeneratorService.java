@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -38,9 +37,11 @@ public class GeneratorService implements Serializable {
         }
         builder.run();
 
-        //Get the graph string for the consumer
-        String graphString = Files.readString(genDirectory.resolve("graph.gv"));
-        graph.accept(graphString);
+        if (project.isIncludeDOTGraph()) {
+            //Get the graph string for the consumer
+            String graphString = Files.readString(genDirectory.resolve("graph.gv"));
+            graph.accept(graphString);
+        }
 
         //Create the new resulting Zip stream from the directory with the generated files
         ByteArrayOutputStream zip = FileUtils.zipDirectory(genDirectory);
