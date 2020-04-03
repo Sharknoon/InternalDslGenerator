@@ -1,8 +1,8 @@
+[![buddy pipeline](https://app.buddy.works/sharknoon/internaldslgenerator/pipelines/pipeline/244367/badge.svg?token=bc546db16e7ab333d81c90ea1cccd24d5b2d6d924e81303b82a7816e8b269b52 "buddy pipeline")](https://app.buddy.works/sharknoon/internaldslgenerator/pipelines/pipeline/244367)
+
 # Internal DSL Generator UI
 
 This is a little webinterface for [etgramli](https://github.com/etgramli)s [AntlrTest Internal Java DSL Generator](https://github.com/etgramli/AntlrTest)
-
-[![buddy pipeline](https://app.buddy.works/sharknoon/internaldslgenerator/pipelines/pipeline/244367/badge.svg?token=bc546db16e7ab333d81c90ea1cccd24d5b2d6d924e81303b82a7816e8b269b52 "buddy pipeline")](https://app.buddy.works/sharknoon/internaldslgenerator/pipelines/pipeline/244367)
 
 ## Build and Run local
 Run
