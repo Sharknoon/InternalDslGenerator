@@ -11,17 +11,21 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.StreamResource;
 import de.sharknoon.internal_dsl_generator.backend.GeneratorService;
+import de.sharknoon.internal_dsl_generator.backend.Language;
 import de.sharknoon.internal_dsl_generator.views.main.MainView;
 import elemental.json.Json;
+import org.apache.commons.text.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.BufferedReader;
@@ -57,7 +61,7 @@ public class GeneratorView extends VerticalLayout {
     private Component getTitleComponent() {
         //A little Title informing the user about the Generator
         H1 title = new H1();
-        title.setText("Java Internal DSL Generator");
+        title.setText("Internal DSL Generator");
         title.setWidth(null);
         setHorizontalComponentAlignment(Alignment.CENTER, title);
         return title;
@@ -115,6 +119,13 @@ public class GeneratorView extends VerticalLayout {
         Checkbox includeDOTGraphCheckbox = new Checkbox();
         includeDOTGraphCheckbox.setLabel("Include DOT Graph");
 
+        //Radio Button Group for Language selection
+        RadioButtonGroup<Language> languageRadioButtonGroup = new RadioButtonGroup<>();
+        languageRadioButtonGroup.setLabel("Output Language");
+        languageRadioButtonGroup.setItems(Language.JAVA, Language.SCALA);
+        languageRadioButtonGroup.setValue(Language.JAVA);
+        languageRadioButtonGroup.setRenderer(new TextRenderer<>(item -> WordUtils.capitalizeFully(item.name())));
+
         // Start Button
         Button startButton = new Button("Generate");
         startButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -136,6 +147,7 @@ public class GeneratorView extends VerticalLayout {
             packageNameField.setValue(DEFAULT_PACKAGE_NAME);
             grammarArea.setValue(DEFAULT_BNF);
             includeDOTGraphCheckbox.setValue(true);
+            languageRadioButtonGroup.setValue(Language.JAVA);
         });
 
         //Button Layout
@@ -162,6 +174,7 @@ public class GeneratorView extends VerticalLayout {
             graph = null;
             graphIFrame.setHeight("0px");
             includeDOTGraphCheckbox.setValue(false);
+            languageRadioButtonGroup.setValue(Language.JAVA);
         });
 
         startButton.addClickListener(event -> {
@@ -169,6 +182,7 @@ public class GeneratorView extends VerticalLayout {
             String grammarName = ((MemoryBuffer) upload.getReceiver()).getFileName();
             String packageName = packageNameField.getValue();
             boolean includeDOTGraph = includeDOTGraphCheckbox.getValue();
+            Language language = languageRadioButtonGroup.getValue();
             if (!validateInput(packageName, grammar)) {
                 return;
             }
@@ -178,8 +192,8 @@ public class GeneratorView extends VerticalLayout {
                                 grammar,
                                 grammarName,
                                 packageName,
-                                includeDOTGraph
-                        ),
+                                includeDOTGraph,
+                                language),
                         s -> graph = s
                 );
                 downloadAnchor.setHref(resource);
@@ -192,7 +206,7 @@ public class GeneratorView extends VerticalLayout {
                     String prefix = "https://dreampuf.github.io/GraphvizOnline/#";
                     String url = prefix + encoded;
                     //strange but blanks are nor encoded
-                    String specialUrl = url.replace('+',' ');
+                    String specialUrl = url.replace('+', ' ');
                     //getUI().ifPresent(ui -> ui.getPage().open(specialUrl));
                     graphIFrame.setSrc(specialUrl);
                     graphIFrame.setHeight("750px");
@@ -208,6 +222,7 @@ public class GeneratorView extends VerticalLayout {
                 new Div(grammarArea),
                 upload,
                 new Div(includeDOTGraphCheckbox),
+                new Div(languageRadioButtonGroup),
                 buttonLayout,
                 graphIFrame
         };

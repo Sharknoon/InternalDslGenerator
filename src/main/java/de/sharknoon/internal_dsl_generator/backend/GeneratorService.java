@@ -35,7 +35,8 @@ public class GeneratorService implements Serializable {
         if (project.isIncludeDOTGraph()) {
             builder.dotGraph(Paths.get("graph"));
         }
-        builder.run();
+        builder.language(project.getLanguage())
+                .run();
 
         if (project.isIncludeDOTGraph()) {
             //Get the graph string for the consumer

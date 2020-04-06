@@ -48,6 +48,14 @@ public class Generator {
         Builder dotGraph(Path dotGraph);
     }
 
+    public interface LanguageStep {
+        /**
+         * @param language The output language of this generator
+         * @return Builder
+         */
+        Builder language(Language language);
+    }
+
     public interface RunStep {
         /**
          * Runs the Generator with the specified parameters
@@ -60,12 +68,14 @@ public class Generator {
             PackageNameStep,
             GrammarFileStep,
             DOTGraphStep,
+            LanguageStep,
             RunStep {
 
         private Path r_outputDirectory;
         private String r_packageName;
         private Path r_grammarFile;
         private Path o_DOTGraph;
+        private Language o_language;
 
         private Builder() {
         }
@@ -95,6 +105,12 @@ public class Generator {
         }
 
         @Override
+        public Builder language(Language language) {
+            o_language = language;
+            return this;
+        }
+
+        @Override
         public void run() {
             //Required
             ArrayList<String> argsList = new ArrayList<>(List.of(
@@ -105,6 +121,16 @@ public class Generator {
             //Optional
             if (o_DOTGraph != null) {
                 argsList.addAll(List.of("-s", o_DOTGraph.toString()));
+            }
+            if (o_language != null) {
+                switch (o_language) {
+                    case JAVA:
+                        argsList.add("-j");
+                        break;
+                    case SCALA:
+                        argsList.add("-c");
+                        break;
+                }
             }
             String[] args = argsList.toArray(String[]::new);
             Main.main(args);
