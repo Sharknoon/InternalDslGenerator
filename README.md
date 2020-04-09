@@ -15,7 +15,8 @@ mvn spring-boot:run -s settings.xml
 ```
 and visit [localhost:8080](http://localhost:8080)
 
-> Be sure to grant at least the scope ```read:packages``` to the access token!
+> Be sure to grant at least the scope ```read:packages``` to the access token!  
+> The GitHub Credentials are needed to download Packages from GitHub, although they are in a public repositry
 
 ## Run prebuilt docker image
 Run
@@ -36,4 +37,5 @@ docker build -t YOUR_DOCKER_USERNAME/internal-dsl-generator:latest .
 ```
 and deploy it to a repository near you
 
-> Be sure to grant at least the scope ```read:packages``` to the access token!
+> Be sure to grant at least the scope ```read:packages``` to the access token!  
+> The GitHub Credentials are needed to download Packages from GitHub, although they are in a public repositry
