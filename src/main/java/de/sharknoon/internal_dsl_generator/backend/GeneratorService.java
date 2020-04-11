@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +17,7 @@ import java.util.function.Consumer;
 @Service
 public class GeneratorService implements Serializable {
 
-    public StreamResource generate(Project project, Consumer<String> graph) throws IOException {
+    public StreamResource generate(Project project, Consumer<String> graph) throws Exception {
         Objects.requireNonNull(project);
         //Creating directory to put the generated files in
         Path genDirectory = Files.createTempDirectory("generated");
@@ -36,6 +35,7 @@ public class GeneratorService implements Serializable {
             builder.dotGraph(Paths.get("graph"));
         }
         builder.language(project.getLanguage())
+                .returnType(project.getReturnType())
                 .run();
 
         if (project.isIncludeDOTGraph()) {

@@ -71,6 +71,56 @@ public class GeneratorView extends VerticalLayout {
     private final Upload upload = new Upload(new MemoryBuffer());
     private String graph = null;
 
+    private final Language DEFAULT_LANGUAGE = Language.JAVA;
+
+    private boolean validateInput(String packageName, String grammar) {
+        if (packageName.isEmpty()) {
+            showErrorNotification("Please enter a package name");
+            return false;
+        } else if (grammar.isEmpty()) {
+            showErrorNotification("Please upload a grammar file");
+            return false;
+        }
+        return true;
+    }
+
+    private void showErrorNotification(String s) {
+        Notification notification = new Notification(s);
+        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        notification.setDuration(1000 * 5);
+        notification.open();
+    }
+
+    private final String DEFAULT_PACKAGE_NAME = "de.etgramli";
+
+    private final String DEFAULT_BNF = "<joi>\n" +
+            "    = <component>\n" +
+            "    ;\n" +
+            "\n" +
+            "<component>\n" +
+            "    = ('component' | 'singleton') <componentName>\n" +
+            "    <componentInterface> {<componentInterface>}\n" +
+            "    <componentMethod> {<componentMethod>}\n" +
+            "    {<componentField>}\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentName>\n" +
+            "    = String\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentInterface>\n" +
+            "    = 'impl' String\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentMethod>\n" +
+            "    = 'method' String\n" +
+            "    ;\n" +
+            "\n" +
+            "<componentField>\n" +
+            "    = 'field' String\n" +
+            "    ;";
+    private final String DEFAULT_RETURN_TYPE = "Expr";
+
     private Component[] getUploadComponents() {
         //Textfield for the package name
         TextField packageNameField = new TextField();
@@ -123,8 +173,18 @@ public class GeneratorView extends VerticalLayout {
         RadioButtonGroup<Language> languageRadioButtonGroup = new RadioButtonGroup<>();
         languageRadioButtonGroup.setLabel("Output Language");
         languageRadioButtonGroup.setItems(Language.JAVA, Language.SCALA);
-        languageRadioButtonGroup.setValue(Language.JAVA);
+        languageRadioButtonGroup.setValue(DEFAULT_LANGUAGE);
         languageRadioButtonGroup.setRenderer(new TextRenderer<>(item -> WordUtils.capitalizeFully(item.name())));
+
+        //Checkbox, Textfield and Horizontal Layout for custom return Type
+        HorizontalLayout customReturnTypeLayout = new HorizontalLayout();
+        Checkbox customReturnTypeCheckbox = new Checkbox("Custom End Method Return Type");
+        TextField customReturnTypeTextField = new TextField();
+        customReturnTypeTextField.setPlaceholder(DEFAULT_RETURN_TYPE);
+        customReturnTypeTextField.setValue(DEFAULT_RETURN_TYPE);
+        customReturnTypeTextField.setEnabled(false);
+        customReturnTypeCheckbox.addValueChangeListener(e -> customReturnTypeTextField.setEnabled(e.getValue()));
+        customReturnTypeLayout.add(customReturnTypeCheckbox, customReturnTypeTextField);
 
         // Start Button
         Button startButton = new Button("Generate");
@@ -147,7 +207,9 @@ public class GeneratorView extends VerticalLayout {
             packageNameField.setValue(DEFAULT_PACKAGE_NAME);
             grammarArea.setValue(DEFAULT_BNF);
             includeDOTGraphCheckbox.setValue(true);
-            languageRadioButtonGroup.setValue(Language.JAVA);
+            languageRadioButtonGroup.setValue(DEFAULT_LANGUAGE);
+            customReturnTypeCheckbox.setValue(false);
+            customReturnTypeTextField.setValue(DEFAULT_RETURN_TYPE);
         });
 
         //Button Layout
@@ -174,7 +236,9 @@ public class GeneratorView extends VerticalLayout {
             graph = null;
             graphIFrame.setHeight("0px");
             includeDOTGraphCheckbox.setValue(false);
-            languageRadioButtonGroup.setValue(Language.JAVA);
+            languageRadioButtonGroup.setValue(DEFAULT_LANGUAGE);
+            customReturnTypeCheckbox.setValue(false);
+            customReturnTypeTextField.setValue(DEFAULT_RETURN_TYPE);
         });
 
         startButton.addClickListener(event -> {
@@ -183,6 +247,12 @@ public class GeneratorView extends VerticalLayout {
             String packageName = packageNameField.getValue();
             boolean includeDOTGraph = includeDOTGraphCheckbox.getValue();
             Language language = languageRadioButtonGroup.getValue();
+            String returnType;
+            if (customReturnTypeCheckbox.getValue()) {
+                returnType = customReturnTypeTextField.getValue();
+            } else {
+                returnType = null;
+            }
             if (!validateInput(packageName, grammar)) {
                 return;
             }
@@ -193,7 +263,8 @@ public class GeneratorView extends VerticalLayout {
                                 grammarName,
                                 packageName,
                                 includeDOTGraph,
-                                language),
+                                language,
+                                returnType),
                         s -> graph = s
                 );
                 downloadAnchor.setHref(resource);
@@ -205,7 +276,7 @@ public class GeneratorView extends VerticalLayout {
                     String encoded = URLEncoder.encode(graph, StandardCharsets.UTF_8);
                     String prefix = "https://dreampuf.github.io/GraphvizOnline/#";
                     String url = prefix + encoded;
-                    //strange but blanks are nor encoded
+                    //strange but blanks are not encoded
                     String specialUrl = url.replace('+', ' ');
                     //getUI().ifPresent(ui -> ui.getPage().open(specialUrl));
                     graphIFrame.setSrc(specialUrl);
@@ -213,7 +284,7 @@ public class GeneratorView extends VerticalLayout {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                showErrorNotification("Error during Generation " + e);
+                showErrorNotification("Error during Generation: " + e);
             }
         });
 
@@ -223,60 +294,10 @@ public class GeneratorView extends VerticalLayout {
                 upload,
                 new Div(includeDOTGraphCheckbox),
                 new Div(languageRadioButtonGroup),
+                customReturnTypeLayout,
                 buttonLayout,
                 graphIFrame
         };
     }
-
-    private boolean validateInput(String packageName, String grammar) {
-        if (packageName.isEmpty()) {
-            showErrorNotification("Please enter a package name");
-            return false;
-        } else if (grammar.isEmpty()) {
-            showErrorNotification("Please upload a grammar file");
-            return false;
-        }
-        return true;
-    }
-
-    private void showErrorNotification(String s) {
-        Notification notification = new Notification(s);
-        notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        notification.setDuration(1000 * 5);
-        notification.open();
-    }
-
-    private void openGraph(String graph) {
-
-    }
-
-    private final String DEFAULT_PACKAGE_NAME = "de.etgramli";
-
-    private final String DEFAULT_BNF = "<joi>\n" +
-            "    = <component>\n" +
-            "    ;\n" +
-            "\n" +
-            "<component>\n" +
-            "    = ('component' | 'singleton') <componentName>\n" +
-            "    <componentInterface> {<componentInterface>}\n" +
-            "    <componentMethod> {<componentMethod>}\n" +
-            "    {<componentField>}\n" +
-            "    ;\n" +
-            "\n" +
-            "<componentName>\n" +
-            "    = String\n" +
-            "    ;\n" +
-            "\n" +
-            "<componentInterface>\n" +
-            "    = 'impl' String\n" +
-            "    ;\n" +
-            "\n" +
-            "<componentMethod>\n" +
-            "    = 'method' String\n" +
-            "    ;\n" +
-            "\n" +
-            "<componentField>\n" +
-            "    = 'field' String\n" +
-            "    ;";
 
 }

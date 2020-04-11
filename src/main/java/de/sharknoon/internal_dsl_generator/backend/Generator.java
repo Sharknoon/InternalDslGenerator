@@ -56,11 +56,21 @@ public class Generator {
         Builder language(Language language);
     }
 
+    public interface ReturnTypeStep {
+        /**
+         * @param returnType Determines the return type of the end method.
+         * @return Builder
+         */
+        Builder returnType(String returnType);
+    }
+
     public interface RunStep {
         /**
          * Runs the Generator with the specified parameters
+         *
+         * @throws Exception if something fails during the generation
          */
-        void run();
+        void run() throws Exception;
     }
 
     public static class Builder implements
@@ -69,6 +79,7 @@ public class Generator {
             GrammarFileStep,
             DOTGraphStep,
             LanguageStep,
+            ReturnTypeStep,
             RunStep {
 
         private Path r_outputDirectory;
@@ -76,6 +87,7 @@ public class Generator {
         private Path r_grammarFile;
         private Path o_DOTGraph;
         private Language o_language;
+        private String o_returnType;
 
         private Builder() {
         }
@@ -111,6 +123,12 @@ public class Generator {
         }
 
         @Override
+        public Builder returnType(String returnType) {
+            o_returnType = returnType;
+            return this;
+        }
+
+        @Override
         public void run() {
             //Required
             ArrayList<String> argsList = new ArrayList<>(List.of(
@@ -131,6 +149,9 @@ public class Generator {
                         argsList.add("-c");
                         break;
                 }
+            }
+            if (o_returnType != null) {
+                argsList.addAll(List.of("-r", o_returnType));
             }
             String[] args = argsList.toArray(String[]::new);
             Main.main(args);
